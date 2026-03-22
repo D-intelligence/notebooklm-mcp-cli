@@ -85,7 +85,7 @@ class SharingMixin(BaseClient):
             public_link=public_link,
         )
 
-    def set_public_access(self, notebook_id: str, is_public: bool = True) -> str | None:
+    def set_public_access(self, notebook_id: str, *, is_public: bool) -> str | None:
         """Toggle public link access for a notebook.
 
         Args:

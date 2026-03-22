@@ -631,17 +631,30 @@ def execute_cdp_command(
             return response.get("result", {})
 
 
+_ALLOWED_COOKIE_DOMAINS = {".google.com", "google.com", ".googleusercontent.com"}
+
+
+def _is_google_cookie(cookie: dict) -> bool:
+    """Check if a cookie belongs to a Google domain."""
+    domain = cookie.get("domain", "")
+    return any(
+        domain == d or domain.endswith(d) for d in _ALLOWED_COOKIE_DOMAINS
+    )
+
+
 def get_page_cookies(ws_url: str) -> list[dict]:
-    """Get all cookies for the page via CDP.
+    """Get Google cookies for the page via CDP.
 
     This is the key function that avoids keychain access!
-    Uses Network.getAllCookies CDP command to get cookies for all domains.
+    Uses Network.getAllCookies CDP command, then filters to Google domains
+    only to avoid capturing unrelated session cookies.
 
     Returns:
         List of cookie objects (dicts) including name, value, domain, path, etc.
     """
     result = execute_cdp_command(ws_url, "Network.getAllCookies")
-    return result.get("cookies", [])
+    all_cookies = result.get("cookies", [])
+    return [c for c in all_cookies if _is_google_cookie(c)]
 
 
 def get_page_html(ws_url: str) -> str:

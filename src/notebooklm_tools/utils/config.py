@@ -41,7 +41,9 @@ def get_storage_dir() -> Path:
     else:
         storage_dir = Path.home() / STORAGE_DIR_NAME
     
-    storage_dir.mkdir(exist_ok=True)
+    storage_dir.mkdir(exist_ok=True, mode=0o700)
+    # Ensure permissions even if directory already existed
+    storage_dir.chmod(0o700)
     return storage_dir
 
 
@@ -58,14 +60,14 @@ def get_data_dir() -> Path:
 def get_profiles_dir() -> Path:
     """Get the profiles directory path."""
     profiles_dir = get_storage_dir() / "profiles"
-    profiles_dir.mkdir(exist_ok=True)
+    profiles_dir.mkdir(exist_ok=True, mode=0o700)
     return profiles_dir
 
 
 def get_profile_dir(profile_name: str = "default") -> Path:
     """Get directory for a specific profile."""
     profile_dir = get_profiles_dir() / profile_name
-    profile_dir.mkdir(parents=True, exist_ok=True)
+    profile_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
     return profile_dir
 
 

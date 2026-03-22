@@ -112,7 +112,7 @@ def set_public_access(
         ServiceError: If the API call fails
     """
     try:
-        result = client.set_public_access(notebook_id, is_public)
+        result = client.set_public_access(notebook_id, is_public=is_public)
         if is_public:
             return {
                 "notebook_id": notebook_id,

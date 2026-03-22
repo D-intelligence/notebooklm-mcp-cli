@@ -23,7 +23,7 @@ from .errors import (
 
 class DownloadMixin(BaseClient):
     """Mixin for artifact download operations.
-    
+
     This mixin provides methods for downloading various artifact types:
     - Audio (MP4/MP3)
     - Video (MP4)
@@ -35,6 +35,19 @@ class DownloadMixin(BaseClient):
     - Quiz (JSON/Markdown/HTML)
     - Flashcards (JSON/Markdown/HTML)
     """
+
+    @staticmethod
+    def _safe_output_path(output_path: str) -> "Path":
+        """Resolve and validate output path to prevent path traversal."""
+        resolved = Path(output_path).resolve()
+        home = Path.home().resolve()
+        cwd = Path.cwd().resolve()
+        if not (str(resolved).startswith(str(home)) or str(resolved).startswith(str(cwd))):
+            raise ArtifactDownloadError(
+                f"Output path not allowed: {output_path!r} "
+                f"(resolves outside home and cwd)"
+            )
+        return resolved
 
     # =========================================================================
     # Core Download Infrastructure
@@ -69,7 +82,7 @@ class DownloadMixin(BaseClient):
             ArtifactDownloadError: If download fails
             AuthenticationError: If auth redirect detected
         """
-        output_file = Path(output_path)
+        output_file = self._safe_output_path(output_path)
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Use temp file to prevent corrupted partial downloads
@@ -517,7 +530,7 @@ class DownloadMixin(BaseClient):
             if not isinstance(markdown_content, str):
                 raise ArtifactParseError("report", details="Invalid content structure")
 
-            output = Path(output_path)
+            output = self._safe_output_path(output_path)
             output.parent.mkdir(parents=True, exist_ok=True)
             output.write_text(markdown_content, encoding="utf-8")
             return str(output)
@@ -569,8 +582,8 @@ class DownloadMixin(BaseClient):
                  json_string = target[1][1]
                  if isinstance(json_string, str):
                      json_data = json.loads(json_string)
-                     
-                     output = Path(output_path)
+
+                     output = self._safe_output_path(output_path)
                      output.parent.mkdir(parents=True, exist_ok=True)
                      output.write_text(json.dumps(json_data, indent=2, ensure_ascii=False), encoding="utf-8")
                      return str(output)
@@ -824,7 +837,7 @@ class DownloadMixin(BaseClient):
             headers, rows = self._parse_data_table(raw_data)
 
             # Write to CSV
-            output = Path(output_path)
+            output = self._safe_output_path(output_path)
             output.parent.mkdir(parents=True, exist_ok=True)
 
             with open(output, 'w', newline='', encoding='utf-8-sig') as f:
@@ -1153,7 +1166,7 @@ class DownloadMixin(BaseClient):
         )
 
         # Write to file
-        output = Path(output_path)
+        output = self._safe_output_path(output_path)
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(content, encoding="utf-8")
 

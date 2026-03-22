@@ -28,13 +28,13 @@ def notebook_share_status(notebook_id: str) -> dict[str, Any]:
 @logged_tool()
 def notebook_share_public(
     notebook_id: str,
-    is_public: bool = True,
+    is_public: bool,
 ) -> dict[str, Any]:
     """Enable or disable public link access.
 
     Args:
         notebook_id: Notebook UUID
-        is_public: True to enable public link, False to disable (default: True)
+        is_public: True to enable public link, False to disable
 
     Returns: public_link if enabled, None if disabled
     """

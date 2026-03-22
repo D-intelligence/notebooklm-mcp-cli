@@ -129,8 +129,10 @@ def save_tokens_to_cache(tokens: AuthTokens, silent: bool = False) -> None:
         silent: If True, don't print confirmation message (for auto-updates)
     """
     cache_path = get_cache_path()
+    cache_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     with open(cache_path, "w", encoding="utf-8") as f:
         json.dump(tokens.to_dict(), f, indent=2)
+    cache_path.chmod(0o600)
     if not silent:
         logger.info(f"Auth tokens cached to {cache_path}")
 
